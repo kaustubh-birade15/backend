@@ -1,0 +1,31 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Frontend Flutter UI",
+            "request": "launch",
+            "type": "dart",
+            "program": "${workspaceFolder}/mediguide_app/lib/main.dart",
+            "cwd": "${workspaceFolder}/mediguide_app"
+        },
+        {
+            "name": "Backend FastAPI Server",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "uvicorn",
+            "args": [
+                "main:app",
+                "--host", "0.0.0.0",
+                "--port", "8000",
+                "--reload"
+            ],
+            "cwd": "${workspaceFolder}/backend"
+        }
+    ],
+    "compounds": [
+        {
+            "name": "Run Smart Homeo Advisor (Full Stack)",
+            "configurations": ["Backend FastAPI Server", "Frontend Flutter UI"]
+        }
+    ]
+}
