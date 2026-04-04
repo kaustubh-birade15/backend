@@ -275,22 +275,26 @@ class _DashboardScreenState extends State<DashboardScreen> with TickerProviderSt
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
-          _navIcon(Icons.home_rounded, true),
-          _navIcon(Icons.search_rounded, false, onTap: () => Navigator.pushNamed(context, '/symptoms')),
-          _navIcon(Icons.bookmark_rounded, false, onTap: () => Navigator.pushNamed(context, '/saved')),
-          _navIcon(Icons.person_rounded, false, onTap: () => Navigator.pushNamed(context, '/profile')),
+          _navIcon(Icons.home_rounded, "Home", true),
+          _navIcon(Icons.search_rounded, "Find", false, onTap: () => Navigator.pushNamed(context, '/symptoms')),
+          _navIcon(Icons.bookmark_rounded, "Saved", false, onTap: () => Navigator.pushNamed(context, '/saved')),
+          _navIcon(Icons.school_rounded, "Learn", false, onTap: () => Navigator.pushNamed(context, '/learn')),
+          _navIcon(Icons.person_rounded, "Profile", false, onTap: () => Navigator.pushNamed(context, '/profile')),
         ],
       ),
     );
   }
 
-  Widget _navIcon(IconData icon, bool isSelected, {VoidCallback? onTap}) {
+  Widget _navIcon(IconData icon, String label, bool isSelected, {VoidCallback? onTap}) {
     return GestureDetector(
       onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(color: isSelected ? AppTheme.primary.withOpacity(0.1) : Colors.transparent, borderRadius: BorderRadius.circular(20)),
-        child: Icon(icon, color: isSelected ? AppTheme.primary : const Color(0xFFBDBDBD), size: 28),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, color: isSelected ? AppTheme.primary : const Color(0xFFBDBDBD), size: 26),
+          const SizedBox(height: 4),
+          Text(label, style: TextStyle(fontSize: 10, fontWeight: isSelected ? FontWeight.bold : FontWeight.normal, color: isSelected ? AppTheme.primary : const Color(0xFFBDBDBD))),
+        ],
       ),
     );
   }

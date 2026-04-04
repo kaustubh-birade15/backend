@@ -33,7 +33,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
       });
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Error: $e")));
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text("Session Reset Needed"),
+            content: const Text("Your local ID does not match the new cloud server. Please log in again to sync your data."),
+            actions: [
+              TextButton(onPressed: () => _logout(), child: const Text("Log In Now"))
+            ],
+          ),
+        );
         setState(() => _isLoading = false);
       }
     }

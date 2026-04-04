@@ -60,7 +60,7 @@ class _ResultScreenState extends State<ResultScreen> with TickerProviderStateMix
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        leading: IconButton(icon: const Icon(Icons.close_rounded, color: Colors.white, size: 28), onPressed: () => Navigator.pop(context)),
+        leading: IconButton(icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 24), onPressed: () => Navigator.pop(context)),
         title: const Text("Analysis Result", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
         centerTitle: true,
         actions: [
@@ -109,6 +109,19 @@ class _ResultScreenState extends State<ResultScreen> with TickerProviderStateMix
             child: Text(
               "Source: ${remedy!["source_book"]}",
               style: const TextStyle(color: Colors.grey, fontSize: 12, fontStyle: FontStyle.italic),
+            ),
+          ),
+          const SizedBox(height: 32),
+          SizedBox(
+            width: double.infinity,
+            height: 55,
+            child: ElevatedButton(
+              onPressed: () => Navigator.pop(context),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppTheme.primary,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              ),
+              child: const Text("Return to Dashboard", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
             ),
           ),
           const SizedBox(height: 60),

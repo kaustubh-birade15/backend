@@ -84,7 +84,7 @@ class _MedicalHistoryScreenState extends State<MedicalHistoryScreen> {
 
       final profileData = {
         "user_id": patientId.toString(),
-        "name": name,
+        "full_name": name,
         "email": email,
         "age": 25, // Fallback if not stored, usually carried from signup
         "gender": "M", // Usually carried from signup

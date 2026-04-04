@@ -10,7 +10,7 @@ class ApiService {
   static String get baseUrl {
     // ⬇️ SET TO true FOR LOCAL TESTING (Laptop must be on)
     // ⬇️ SET TO false FOR REMOTE ACCESS (Production Render)
-    const bool useLocal = false; // Set to false for cloud production build
+    const bool useLocal = false; // Set to false to use your Live Cloud URL!
 
     if (useLocal) {
       if (kIsWeb) return "http://localhost:8000";
