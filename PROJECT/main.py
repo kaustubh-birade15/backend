@@ -160,16 +160,23 @@ def getp(patient_id: str):
 
 @app.post("/predict")
 def predict(req: PredictRequest, patient_id: Optional[str] = None):
-    sym = req.symptoms[0].lower().strip()
-    match = df[(df["symptom"] == sym) & (df["severity"] == req.severity.lower())]
-    if match.empty: raise HTTPException(404, "No remedy found")
+    if df.empty: raise HTTPException(500, "Dataset not loaded")
+    sym = req.symptoms[0].lower().strip() if req.symptoms else ""
+    sev = req.severity.lower().strip()
+    
+    # Smart Matching: 1. Exact Match -> 2. Contains Match 🔍
+    match = df[(df["symptom"] == sym) & (df["severity"] == sev)]
+    if match.empty:
+        match = df[df["symptom"].str.contains(sym, na=False) & (df["severity"] == sev)]
+    
+    if match.empty: raise HTTPException(status_code=404, detail=f"No remedy found for {sym}")
     row = match.iloc[0].to_dict()
     p = get_patient_info(patient_id) if patient_id else {}
     
     # Storage
     conn = get_db()
     with conn.cursor() as cur:
-        cur.execute("INSERT INTO consultations (user_id, symptom, severity, remedy_name, potency, condition) VALUES (%s,%s,%s,%s,%s,%s)",(patient_id or "guest", sym, req.severity, row["remedy_name"], row["potency"], row["possible_condition"]))
+        cur.execute("INSERT INTO consultations (user_id, symptom, severity, remedy_name, potency, condition) VALUES (%s,%s,%s,%s,%s,%s)",(patient_id or "guest", sym, sev, row["remedy_name"], row["potency"], row["possible_condition"]))
         conn.commit()
     conn.close()
 
