@@ -1,4 +1,4 @@
-﻿"""
+"""
 SmartHomeoAIAdvisor - Professional Cloud Backend (PostgreSQL)
 """
 
@@ -77,7 +77,7 @@ except:
 
 # â”€â”€ Models â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 class PatientProfile(BaseModel):
-    user_id: str; full_name: str; email: str = ""; password: str = ""
+    user_id: Optional[str] = None; full_name: str; email: str = ""; password: str = ""
     age: int; gender: str; blood_group: str = ""; bp_high: bool = False
     diabetic: bool = False; sugar_level: str = "normal"; bp_reading: str = ""
     allergies: List[str] = []; existing_conditions: List[str] = []; other_conditions: str = ""
