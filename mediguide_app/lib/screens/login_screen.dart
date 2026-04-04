@@ -31,7 +31,8 @@ class _LoginScreenState extends State<LoginScreen> {
       final response = await ApiService.login(emailController.text.trim(), passwordController.text);
       final prefs = await SharedPreferences.getInstance();
       await prefs.setInt('patient_id', response['patient_id']);
-      await prefs.setString('full_name', response['full_name']);
+      await prefs.setString('full_name', response['name'] ?? response['full_name'] ?? "");
+      await prefs.setString('user_email', emailController.text.trim());
 
       if (!mounted) return;
 

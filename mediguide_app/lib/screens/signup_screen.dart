@@ -50,7 +50,8 @@ class _SignupScreenState extends State<SignupScreen> {
       
       final prefs = await SharedPreferences.getInstance();
       await prefs.setInt('patient_id', response['id']);
-      await prefs.setString('full_name', response['full_name']);
+      await prefs.setString('full_name', response['name'] ?? response['full_name'] ?? "");
+      await prefs.setString('user_email', emailController.text.trim());
 
       if (!mounted) return;
       Navigator.pushReplacementNamed(context, '/medical_history');

@@ -1,9 +1,9 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:mediguide_app/screens/all_categories_screen.dart';
 import 'package:mediguide_app/screens/result_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../services/api_services.dart';
+import '../theme/app_theme.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -12,15 +12,23 @@ class DashboardScreen extends StatefulWidget {
   State<DashboardScreen> createState() => _DashboardScreenState();
 }
 
-class _DashboardScreenState extends State<DashboardScreen> {
-  int _selectedIndex = 0;
-  String _patientName = "Guest";
+class _DashboardScreenState extends State<DashboardScreen> with TickerProviderStateMixin {
+  String _patientName = "User";
   bool _needsHistory = false;
+  late AnimationController _mainController;
 
   @override
   void initState() {
     super.initState();
+    _mainController = AnimationController(vsync: this, duration: const Duration(milliseconds: 1200));
     _loadPatientData();
+    _mainController.forward();
+  }
+
+  @override
+  void dispose() {
+    _mainController.dispose();
+    super.dispose();
   }
 
   Future<void> _loadPatientData() async {
@@ -47,444 +55,242 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   String _getGreeting() {
     final hour = DateTime.now().hour;
-    if (hour < 12) return "Good Morning,";
-    if (hour < 17) return "Good Afternoon,";
-    if (hour < 21) return "Good Evening,";
-    return "Good Night,";
+    if (hour < 12) return "Good Morning, ☀️";
+    if (hour < 17) return "Good Afternoon, 🌤️";
+    if (hour < 21) return "Good Evening, 🌜";
+    return "Good Night, 🌙";
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      extendBody: true, // Let content scroll behind the floating nav bar
-      backgroundColor: const Color(0xFFF4F2FA), // Beige background
+      backgroundColor: AppTheme.background,
       body: SafeArea(
-        bottom: false,
         child: SingleChildScrollView(
-          padding: const EdgeInsets.only(
-            left: 24,
-            right: 24,
-            top: 20,
-            bottom: 100,
-          ),
+          padding: const EdgeInsets.all(24.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // HEADER
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        _getGreeting(),
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          color: Color(0xFF8B8B9E),
-                        ),
-                      ),
-                      Text(
-                        _patientName,
-                        style: const TextStyle(
-                          fontSize: 26,
-                          fontWeight: FontWeight.w800,
-                          color: Color(0xFF3B3B58),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const CircleAvatar(
-                    radius: 24,
-                    backgroundColor: Color(0xFFFFB3B3), // Soft Orange
-                    child: Icon(
-                      Icons.face_retouching_natural,
-                      color: Colors.white,
-                      size: 30,
-                    ),
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 25),
-
-              if (_needsHistory)
-                Container(
-                  width: double.infinity,
-                  margin: const EdgeInsets.only(bottom: 20),
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFFFF7E6),
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: const Color(0xFFFFE0B2)),
-                  ),
-                  child: Row(
-                    children: [
-                      const Icon(Icons.info_outline, color: Colors.orange),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text(
-                              "Complete your health profile",
-                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
-                            ),
-                            const Text(
-                              "Adding medical conditions helps provide safer recommendations.",
-                              style: TextStyle(fontSize: 11, color: Colors.grey),
-                            ),
-                          ],
-                        ),
-                      ),
-                      TextButton(
-                        onPressed: () => Navigator.pushNamed(context, '/medical_history').then((_) => _loadPatientData()),
-                        child: const Text("Set Up"),
-                      ),
-                    ],
-                  ),
-                ),
-
-              const SizedBox(height: 10),
-
-              // MAIN ACTION CARD
-              GestureDetector(
-                onTap: () {
-                  Navigator.pushNamed(context, '/symptoms');
-                },
-                child: Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(24),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFD6C8FF), // Pastel Green
-                    borderRadius: BorderRadius.circular(24),
-                    boxShadow: [
-                      BoxShadow(
-                        color: const Color(0xFFD6C8FF).withValues(alpha: 0.3),
-                        blurRadius: 20,
-                        offset: const Offset(0, 10),
-                      ),
-                    ],
-                  ),
-                  child: Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.8),
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Icon(
-                          Icons.search_rounded,
-                          color: Color(0xFF3B3B58),
-                          size: 32,
-                        ),
-                      ),
-                      const SizedBox(width: 20),
-                      Flexible(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: const [
-                            Text(
-                              "Analyze Symptoms",
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                                color: Color(0xFF3B3B58),
-                              ),
-                            ),
-                            SizedBox(height: 8),
-                            Text(
-                              "Describe what you're feeling, let AI find the right remedy.",
-                              style: TextStyle(
-                                fontSize: 13,
-                                color: Color(0xFF4C4C6D),
-                                height: 1.4,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 35),
-
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text(
-                    "Quick Categories",
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w800,
-                      color: Color(0xFF3B3B58),
-                    ),
-                  ),
-                  TextButton(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const AllCategoriesScreen(),
-                        ),
-                      );
-                    },
-                    child: const Text(
-                      "See All",
-                      style: TextStyle(
-                        color: Color(0xFF8B78E6),
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 10),
-
-              // GRID CARDS with rounded friendly illustrations
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  _buildCategoryCard(
-                    context,
-                    Icons.sick_outlined,
-                    "Cold &\nFlu",
-                    const Color(0xFFFFB3B3),
-                  ),
-                  _buildCategoryCard(
-                    context,
-                    Icons.spa_outlined,
-                    "Stress &\nAnxiety",
-                    const Color(0xFFD6C8FF),
-                  ),
-                  _buildCategoryCard(
-                    context,
-                    Icons.restaurant_outlined,
-                    "Digestive\nIssues",
-                    const Color(0xFFA1D9E7),
-                  ),
-                  _buildCategoryCard(
-                    context,
-                    Icons.bed_outlined,
-                    "Sleep\nProblems",
-                    const Color(0xFFFFD1A9),
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 35),
-
-              const Text(
-                "Homeopathy Basics",
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w800,
-                  color: Color(0xFF3B3B58),
-                ),
-              ),
-
+              _buildStaggered(0, _buildHeader()),
+              const SizedBox(height: 32),
+              if (_needsHistory) _buildStaggered(1, _buildSafetyWarning()),
+              const SizedBox(height: 24),
+              _buildStaggered(2, _buildMainActionCard()),
+              const SizedBox(height: 48),
+              _buildStaggered(3, _buildCategoriesHeader()),
               const SizedBox(height: 16),
-
-              // Educational Card Mockup
-              GestureDetector(
-                onTap: () {
-                  Navigator.pushNamed(context, '/learn');
-                },
-                child: Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(24),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.03),
-                        blurRadius: 20,
-                        offset: const Offset(0, 8),
-                      ),
-                    ],
-                  ),
-                  child: Row(
-                    children: [
-                      Container(
-                        width: 80,
-                        height: 80,
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFF4F2FA),
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        child: const Icon(
-                          Icons.book_rounded,
-                          color: Color(0xFFE6B0AA),
-                          size: 40,
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: const [
-                            Text(
-                              "What is Homeopathy?",
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 16,
-                                color: Color(0xFF3B3B58),
-                              ),
-                            ),
-                            SizedBox(height: 6),
-                            Text(
-                              "Learn the core principles of alternative gentle medicine.",
-                              style: TextStyle(
-                                color: Color(0xFF8B8B9E),
-                                fontSize: 13,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
+              _buildStaggered(4, _buildCategoriesGrid()),
+              const SizedBox(height: 40),
+              _buildStaggered(5, _buildInsightsSection()),
+              const SizedBox(height: 100),
             ],
           ),
         ),
       ),
-      bottomNavigationBar: ClipRRect(
-        borderRadius: const BorderRadius.only(
-          topLeft: Radius.circular(30),
-          topRight: Radius.circular(30),
-        ),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
-          child: Container(
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.75),
-              border: Border(
-                top: BorderSide(
-                  color: Colors.white.withValues(alpha: 0.4),
-                  width: 1.5,
-                ),
-              ),
-            ),
-            child: BottomNavigationBar(
-              currentIndex: _selectedIndex,
-              onTap: (index) {
-                if (index == 1) {
-                  Navigator.pushNamed(context, '/symptoms');
-                } else if (index == 2) {
-                  Navigator.pushNamed(context, '/saved');
-                } else if (index == 3) {
-                  Navigator.pushNamed(context, '/learn');
-                } else if (index == 4) {
-                  Navigator.pushNamed(context, '/profile');
-                } else {
-                  setState(() => _selectedIndex = index);
-                }
-              },
-              type: BottomNavigationBarType.fixed,
-              selectedItemColor: const Color(0xFF8B78E6),
-              unselectedItemColor: const Color(0xFFA6A6C1),
-              showSelectedLabels: true,
-              showUnselectedLabels: true,
-              selectedLabelStyle: const TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 11,
-              ),
-              unselectedLabelStyle: const TextStyle(
-                fontWeight: FontWeight.w600,
-                fontSize: 11,
-              ),
-              elevation: 0,
-              backgroundColor: Colors.transparent,
-              items: const [
-                BottomNavigationBarItem(
-                  icon: Icon(Icons.home_rounded, size: 26),
-                  label: "Home",
-                ),
-                BottomNavigationBarItem(
-                  icon: Icon(Icons.search_rounded, size: 26),
-                  label: "Symptoms",
-                ),
-                BottomNavigationBarItem(
-                  icon: Icon(Icons.bookmark_rounded, size: 26),
-                  label: "Saved",
-                ),
-                BottomNavigationBarItem(
-                  icon: Icon(Icons.school_rounded, size: 26),
-                  label: "Learn",
-                ),
-                BottomNavigationBarItem(
-                  icon: Icon(Icons.person_rounded, size: 26),
-                  label: "Profile",
-                ),
-              ],
-            ),
+      bottomNavigationBar: _buildBottomNav(context),
+    );
+  }
+
+  Widget _buildStaggered(int index, Widget child) {
+    return TweenAnimationBuilder(
+      tween: Tween<double>(begin: 0, end: 1),
+      duration: Duration(milliseconds: 600 + (index * 150)),
+      curve: Curves.easeOutQuart,
+      builder: (context, value, child) {
+        return Opacity(
+          opacity: value,
+          child: Transform.translate(
+            offset: Offset(0, 30 * (1 - value)),
+            child: child,
           ),
+        );
+      },
+      child: child,
+    );
+  }
+
+  Widget _buildHeader() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(_getGreeting(), style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppTheme.textSecondary)),
+            const SizedBox(height: 4),
+            Text(_patientName, style: const TextStyle(fontSize: 32, fontWeight: FontWeight.w900, color: AppTheme.primaryDark)),
+          ],
+        ),
+        _buildAvatar(),
+      ],
+    );
+  }
+
+  Widget _buildAvatar() {
+    return Hero(
+      tag: 'profile_avatar',
+      child: Container(
+        padding: const EdgeInsets.all(3),
+        decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: AppTheme.primary.withOpacity(0.3), width: 2)),
+        child: CircleAvatar(
+          radius: 28,
+          backgroundColor: const Color(0xFFE8E5FF),
+          child: const Icon(Icons.person_rounded, color: AppTheme.primary, size: 30),
         ),
       ),
     );
   }
 
-  Widget _buildCategoryCard(
-    BuildContext context,
-    IconData icon,
-    String title,
-    Color color,
-  ) {
-    return GestureDetector(
-      onTap: () {
-        final Map<String, List<String>> categorySymptoms = {
-          "Cold &\nFlu": ["cold", "flu", "fever", "cough"],
-          "Stress &\nAnxiety": ["stress", "anxiety", "fear", "restlessness"],
-          "Digestive\nIssues": ["stomach pain", "nausea", "digestion", "bloating"],
-          "Sleep\nProblems": ["insomnia", "sleeplessness", "sleep trouble"],
-        };
-
-        final symptoms = categorySymptoms[title] ?? [title.replaceAll('\n', ' ')];
-
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => ResultScreen(symptoms: symptoms),
-          ),
-        );
-      },
-      child: Column(
+  Widget _buildSafetyWarning() {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFFFAEE),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: const Color(0xFFFFE0B2).withOpacity(0.5)),
+      ),
+      child: Row(
         children: [
-          Container(
-            padding: const EdgeInsets.all(18),
-            decoration: BoxDecoration(
-              color: color,
-              borderRadius: BorderRadius.circular(20),
-              boxShadow: [
-                BoxShadow(
-                  color: color.withValues(alpha: 0.4),
-                  blurRadius: 15,
-                  offset: const Offset(0, 6),
-                ),
-              ],
-            ),
-            child: Icon(icon, color: Colors.black54, size: 28),
-          ),
-          const SizedBox(height: 10),
-          Text(
-            title,
-            textAlign: TextAlign.center,
-            style: const TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w700,
-              color: Color(0xFF3B3B58),
-              height: 1.2,
-            ),
-          ),
+          const Icon(Icons.shield_rounded, color: Color(0xFFFFA726), size: 32),
+          const SizedBox(width: 16),
+          const Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text("Complete Health Profile", style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15, color: Color(0xFF3B3B58))),
+            SizedBox(height: 4),
+            Text("Unlock safer remedy matching.", style: TextStyle(fontSize: 12, color: Color(0xFF8B8B9E))),
+          ])),
+          IconButton(onPressed: () => Navigator.pushNamed(context, '/medical_history').then((_) => _loadPatientData()), icon: const Icon(Icons.arrow_forward_ios, size: 16, color: Color(0xFFFFA726))),
         ],
+      ),
+    );
+  }
+
+  Widget _buildMainActionCard() {
+    return GestureDetector(
+      onTap: () => Navigator.pushNamed(context, '/symptoms'),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(32),
+        decoration: BoxDecoration(
+          gradient: AppTheme.premiumGradient,
+          borderRadius: BorderRadius.circular(32),
+          boxShadow: [BoxShadow(color: AppTheme.primary.withOpacity(0.3), blurRadius: 25, offset: const Offset(0, 12))],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(padding: const EdgeInsets.all(12), decoration: BoxDecoration(color: Colors.white.withOpacity(0.2), borderRadius: BorderRadius.circular(16)), child: const Icon(Icons.auto_fix_high_rounded, color: Colors.white, size: 30)),
+            const SizedBox(height: 24),
+            const Text("Analyze New Symptoms", style: TextStyle(fontSize: 24, fontWeight: FontWeight.w900, color: Colors.white)),
+            const SizedBox(height: 8),
+            Text("Smart AI-driven homeopathic diagnosis.", style: TextStyle(fontSize: 14, color: Colors.white.withOpacity(0.9))),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCategoriesHeader() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        const Text("Explore Categories", style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: AppTheme.primaryDark)),
+        TextButton(onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const AllCategoriesScreen())), child: const Text("See All", style: TextStyle(color: AppTheme.primary, fontWeight: FontWeight.w800))),
+      ],
+    );
+  }
+
+  Widget _buildCategoriesGrid() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        _buildCatItem(context, Icons.ac_unit_rounded, "Cold & Flu", const Color(0xFFF3F0FF)),
+        _buildCatItem(context, Icons.psychology_rounded, "Anxiety", const Color(0xFFE8E5FF)),
+        _buildCatItem(context, Icons.restaurant_rounded, "Digestive", const Color(0xFFFFF7EE)),
+      ],
+    );
+  }
+
+  Widget _buildInsightsSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text("Learn Homeopathy", style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: AppTheme.primaryDark)),
+        const SizedBox(height: 16),
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            children: [
+              _buildLearnTile("Holistic Healing", "Understanding dynamic force.", Icons.eco_rounded, const Color(0xFFF1FDF5)),
+              const SizedBox(width: 16),
+              _buildLearnTile("Potency Guide", "What 30C vs 200C means.", Icons.auto_graph_rounded, const Color(0xFFF3F0FF)),
+              const SizedBox(width: 16),
+              _buildLearnTile("Safety First", "Homeopathy & other drugs.", Icons.health_and_safety_rounded, const Color(0xFFFFF1F1)),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildLearnTile(String title, String sub, IconData icon, Color color) {
+    return Container(
+      width: 220,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(24), border: Border.all(color: const Color(0xFFF1F0F7))),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(padding: const EdgeInsets.all(10), decoration: BoxDecoration(color: color, shape: BoxShape.circle), child: Icon(icon, color: AppTheme.primary, size: 20)),
+          const SizedBox(height: 16),
+          Text(title, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16, color: AppTheme.primaryDark)),
+          const SizedBox(height: 4),
+          Text(sub, style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary), maxLines: 2),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCatItem(BuildContext context, IconData icon, String title, Color color) {
+    return GestureDetector(
+      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => ResultScreen(symptoms: [title]))),
+      child: Container(
+        width: MediaQuery.of(context).size.width * 0.28,
+        padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 8),
+        decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(24), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 10, offset: const Offset(0, 4))]),
+        child: Column(
+          children: [
+            Container(padding: const EdgeInsets.all(12), decoration: BoxDecoration(color: color, shape: BoxShape.circle), child: Icon(icon, color: AppTheme.primary, size: 24)),
+            const SizedBox(height: 16),
+            Text(title, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13, color: AppTheme.primaryDark)),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBottomNav(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 16),
+      decoration: BoxDecoration(color: Colors.white, borderRadius: const BorderRadius.only(topLeft: Radius.circular(35), topRight: Radius.circular(35)), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 20)]),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: [
+          _navIcon(Icons.home_rounded, true),
+          _navIcon(Icons.search_rounded, false, onTap: () => Navigator.pushNamed(context, '/symptoms')),
+          _navIcon(Icons.bookmark_rounded, false, onTap: () => Navigator.pushNamed(context, '/saved')),
+          _navIcon(Icons.person_rounded, false, onTap: () => Navigator.pushNamed(context, '/profile')),
+        ],
+      ),
+    );
+  }
+
+  Widget _navIcon(IconData icon, bool isSelected, {VoidCallback? onTap}) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(color: isSelected ? AppTheme.primary.withOpacity(0.1) : Colors.transparent, borderRadius: BorderRadius.circular(20)),
+        child: Icon(icon, color: isSelected ? AppTheme.primary : const Color(0xFFBDBDBD), size: 28),
       ),
     );
   }

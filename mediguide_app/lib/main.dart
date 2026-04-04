@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'theme/app_theme.dart';
 import 'screens/login_screen.dart';
 import 'screens/signup_screen.dart';
 import 'screens/symptom_screen.dart';
@@ -21,33 +22,7 @@ class MediGuideApp extends StatelessWidget {
     return MaterialApp(
       title: 'MediGuide AI',
       debugShowCheckedModeBanner: false,
-
-    theme: ThemeData(
-      useMaterial3: true,
-      scaffoldBackgroundColor: const Color(0xFFF4F2FA), // Soft beige background
-      colorScheme: ColorScheme.fromSeed(
-        seedColor: const Color(0xFFD6C8FF), // Pastel green primary
-        primary: const Color(0xFF8B78E6), // Darker pastel green for contrast
-        secondary: const Color(0xFFFFB3B3), // Soft orange
-        surface: Colors.white,
-        background: const Color(0xFFF4F2FA),
-        brightness: Brightness.light,
-      ),
-      primaryColor: const Color(0xFFD6C8FF),
-      textTheme: const TextTheme(
-        bodyMedium: TextStyle(color: Color(0xFF3B3B58)),
-      ),
-      elevatedButtonTheme: ElevatedButtonThemeData(
-        style: ElevatedButton.styleFrom(
-          backgroundColor: const Color(0xFF8B78E6),
-          foregroundColor: Colors.white,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-          ),
-          elevation: 0,
-        ),
-      ),
-    ),
+      theme: AppTheme.lightTheme,
 
       initialRoute: '/login',
 

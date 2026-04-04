@@ -19,7 +19,10 @@
                 "--port", "8000",
                 "--reload"
             ],
-            "cwd": "${workspaceFolder}/backend"
+            "cwd": "${workspaceFolder}/PROJECT",
+            "env": {
+                "PYTHONPATH": "c:\\users\\kaust\\appdata\\local\\packages\\pythonsoftwarefoundation.python.3.12_qbz5n2kfra8p0\\localcache\\local-packages\\python312\\site-packages"
+            }
         }
     ],
     "compounds": [

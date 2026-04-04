@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../services/api_services.dart';
+import '../theme/app_theme.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -27,12 +28,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
       final info = await ApiService.getPatientInfo(patientId);
       setState(() {
-        _patientInfo = info;
+        _patientInfo = info['patient'];
         _isLoading = false;
       });
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Error loading profile: $e")));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Error: $e")));
         setState(() => _isLoading = false);
       }
     }
@@ -45,205 +46,219 @@ class _ProfileScreenState extends State<ProfileScreen> {
     Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
   }
 
-  void _showFeedbackDialog() {
-    final feedbackController = TextEditingController();
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text("Provide Feedback"),
-        content: TextField(
-          controller: feedbackController,
-          maxLines: 3,
-          decoration: const InputDecoration(
-            hintText: "How can we improve Smart Homeo Advisor?",
-            border: OutlineInputBorder(),
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text("Cancel"),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Feedback submitted successfully!")));
-            },
-            child: const Text("Submit"),
-          ),
-        ],
-      )
-    );
-  }
-
-  void _showChangePasswordDialog() {
-    final oldPasswordController = TextEditingController();
-    final newPasswordController = TextEditingController();
-    
-    showDialog(
-      context: context,
-      builder: (context) {
-        bool isChanging = false;
-        return StatefulBuilder(
-          builder: (context, setDialogState) {
-            return AlertDialog(
-              title: const Text("Change Password"),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  TextField(
-                    controller: oldPasswordController,
-                    obscureText: true,
-                    decoration: const InputDecoration(labelText: "Old Password", border: OutlineInputBorder()),
-                  ),
-                  const SizedBox(height: 12),
-                  TextField(
-                    controller: newPasswordController,
-                    obscureText: true,
-                    decoration: const InputDecoration(labelText: "New Password", border: OutlineInputBorder()),
-                  ),
-                ],
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: const Text("Cancel"),
-                ),
-                ElevatedButton(
-                  onPressed: isChanging ? null : () async {
-                    if (oldPasswordController.text.isEmpty || newPasswordController.text.isEmpty) return;
-                    setDialogState(() => isChanging = true);
-                    try {
-                      final prefs = await SharedPreferences.getInstance();
-                      final patientId = prefs.getInt('patient_id') ?? 0;
-                      await ApiService.changePassword(patientId, oldPasswordController.text.trim(), newPasswordController.text.trim());
-                      if (!mounted) return;
-                      Navigator.pop(context);
-                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Password changed successfully")));
-                    } catch (e) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text(e.toString().replaceAll('Exception: ', ''))),
-                      );
-                      setDialogState(() => isChanging = false);
-                    }
-                  },
-                  child: isChanging ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)) : const Text("Save"),
-                ),
-              ],
-            );
-          }
-        );
-      }
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
+    String name = _patientInfo?['name'] ?? "User";
+    String email = _patientInfo?['email'] ?? "user@example.com";
+    String age = _patientInfo?['age']?.toString() ?? "0";
+    String gender = _patientInfo?['gender'] == 'M' || _patientInfo?['gender'] == 'Male' ? "Male" : "Female";
+    String conditions = _patientInfo?['medical_conditions'] ?? "No medical conditions listed.";
+
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("Profile", style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF3B3B58))),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        leading: const BackButton(color: Color(0xFF3B3B58)),
-      ),
-      body: _isLoading 
-        ? const Center(child: CircularProgressIndicator(color: Color(0xFF8B78E6))) 
-        : _patientInfo == null 
-          ? const Center(child: Text("Could not load profile"))
-          : SingleChildScrollView(
-              padding: const EdgeInsets.all(24),
+      backgroundColor: AppTheme.background,
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            // Header with Circle Avatar
+            Container(
+              width: double.infinity,
+              height: 280,
+              decoration: const BoxDecoration(
+                gradient: AppTheme.premiumGradient,
+                borderRadius: BorderRadius.only(
+                  bottomLeft: Radius.circular(50),
+                  bottomRight: Radius.circular(50),
+                ),
+              ),
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Center(
-                    child: CircleAvatar(
-                      radius: 50,
-                      backgroundColor: const Color(0xFFFFB3B3),
+                  AppBar(
+                    backgroundColor: Colors.transparent,
+                    elevation: 0,
+                    leading: IconButton(
+                      icon: const Icon(Icons.arrow_back, color: Colors.white),
+                      onPressed: () => Navigator.pop(context),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  Container(
+                    width: 120,
+                    height: 120,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFFB3B3),
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Colors.white, width: 4),
+                    ),
+                    child: Center(
                       child: Text(
-                        _patientInfo!['full_name'][0].toUpperCase(),
-                        style: const TextStyle(fontSize: 40, color: Colors.white, fontWeight: FontWeight.bold),
+                        name[0].toUpperCase(),
+                        style: const TextStyle(fontSize: 48, fontWeight: FontWeight.w900, color: Colors.white),
                       ),
                     ),
                   ),
-                  const SizedBox(height: 24),
-                  _buildInfoTile("Full Name", _patientInfo!['full_name'], Icons.person_outline),
-                  _buildInfoTile("Email", _patientInfo!['email'], Icons.email_outlined),
-                  _buildInfoTile("Age", "${_patientInfo!['age']} Years", Icons.calendar_today_outlined),
-                  _buildInfoTile("Gender", _patientInfo!['gender'] == 'M' ? "Male" : "Female", Icons.transgender_outlined),
-                  const SizedBox(height: 24),
-                  const Text("Medical History", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF3B3B58))),
-                  const SizedBox(height: 12),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 24),
+            
+            // Name & Email
+            Text(
+              name,
+              style: const TextStyle(fontSize: 26, fontWeight: FontWeight.w900, color: AppTheme.primaryDark),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              email,
+              style: const TextStyle(fontSize: 14, color: AppTheme.textSecondary, fontWeight: FontWeight.w500),
+            ),
+
+            const SizedBox(height: 40),
+
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    "Account Details",
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: AppTheme.primaryDark),
+                  ),
+                  const SizedBox(height: 16),
+                  
+                  // Age & Gender Card
                   Container(
                     width: double.infinity,
-                    padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFF3EFFF),
-                      borderRadius: BorderRadius.circular(16),
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(24),
+                      boxShadow: [
+                        BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 10, offset: const Offset(0, 4)),
+                      ],
+                    ),
+                    child: Column(
+                      children: [
+                        _buildDetailItem(Icons.calendar_month_rounded, "Age", "$age Years", const Color(0xFFF1F0F7)),
+                        const Divider(color: Color(0xFFF5F5F5), height: 1),
+                        _buildDetailItem(Icons.transgender_rounded, "Gender", gender, const Color(0xFFF1F0F7)),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(height: 40),
+
+                  const Text(
+                    "Medical Insights",
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: AppTheme.primaryDark),
+                  ),
+                  const SizedBox(height: 16),
+                  
+                  // Clinical Background Card
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(24),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(24),
+                      boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 10, offset: const Offset(0, 4))],
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          (_patientInfo!['medical_conditions'] == null || _patientInfo!['medical_conditions'].isEmpty)
-                            ? "No medical conditions listed."
-                            : _patientInfo!['medical_conditions'],
-                          style: const TextStyle(fontSize: 14, color: Color(0xFF3B3B58)),
+                        Row(
+                          children: const [
+                            Icon(Icons.assignment_ind_rounded, color: AppTheme.primary, size: 24),
+                            SizedBox(width: 12),
+                            Text("Clinical Background", style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16, color: AppTheme.primaryDark)),
+                          ],
                         ),
-                        const SizedBox(height: 12),
-                        OutlinedButton.icon(
-                          onPressed: () => Navigator.pushNamed(context, '/medical_history').then((_) => _loadProfile()),
-                          icon: const Icon(Icons.edit_note, size: 18),
-                          label: const Text("Edit History"),
-                          style: OutlinedButton.styleFrom(
-                            foregroundColor: const Color(0xFF8B78E6),
-                            side: const BorderSide(color: Color(0xFF8B78E6)),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                        const SizedBox(height: 16),
+                        Text(
+                          conditions,
+                          style: const TextStyle(fontSize: 14, color: AppTheme.textSecondary, height: 1.5),
+                        ),
+                        const SizedBox(height: 24),
+                        SizedBox(
+                          width: double.infinity,
+                          child: OutlinedButton.icon(
+                            onPressed: () => Navigator.pushNamed(context, '/medical_history').then((_) => _loadProfile()),
+                            icon: const Icon(Icons.edit_note_rounded, size: 20),
+                            label: const Text("Refine History", style: TextStyle(fontWeight: FontWeight.w800)),
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: AppTheme.primary,
+                              side: const BorderSide(color: AppTheme.primary, width: 1.2),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                              padding: const EdgeInsets.symmetric(vertical: 14),
+                            ),
                           ),
                         ),
                       ],
                     ),
                   ),
-                  const SizedBox(height: 32),
-                  const Text("Settings", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF3B3B58))),
+
+                  const SizedBox(height: 40),
+
+                  const Text(
+                    "Care Settings",
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: AppTheme.primaryDark),
+                  ),
                   const SizedBox(height: 16),
-                  _buildActionTile("Change Password", Icons.lock_outline, _showChangePasswordDialog),
-                  _buildActionTile("Provide Feedback", Icons.feedback_outlined, _showFeedbackDialog),
-                  _buildActionTile("Logout", Icons.logout, _logout, isDestructive: true),
+                  
+                  _buildActionRow(Icons.history_rounded, "Consultation History", () => Navigator.pushNamed(context, '/saved')),
+                  _buildActionRow(Icons.lock_rounded, "Change Password", () {}),
+                  _buildActionRow(Icons.logout_rounded, "Logout", _logout, isDestructive: true),
+                  
+                  const SizedBox(height: 100),
                 ],
               ),
             ),
-    );
-  }
-
-  Widget _buildInfoTile(String title, String value, IconData icon) {
-    return ListTile(
-      leading: Icon(icon, color: const Color(0xFF8B78E6)),
-      title: Text(title, style: const TextStyle(fontSize: 12, color: Colors.grey)),
-      subtitle: Text(value, style: const TextStyle(fontSize: 16, color: Color(0xFF3B3B58), fontWeight: FontWeight.w600)),
-      contentPadding: EdgeInsets.zero,
-    );
-  }
-
-  Widget _buildActionTile(String title, IconData icon, VoidCallback onTap, {bool isDestructive = false}) {
-    return ListTile(
-      onTap: onTap,
-      leading: Container(
-        padding: const EdgeInsets.all(8),
-        decoration: BoxDecoration(
-          color: isDestructive ? Colors.red.withOpacity(0.1) : const Color(0xFFF3EFFF),
-          borderRadius: BorderRadius.circular(8),
+          ],
         ),
-        child: Icon(icon, color: isDestructive ? Colors.red : const Color(0xFF8B78E6)),
       ),
-      title: Text(
-        title, 
-        style: TextStyle(
-          color: isDestructive ? Colors.red : const Color(0xFF3B3B58), 
-          fontWeight: FontWeight.w600
-        )
+    );
+  }
+
+  Widget _buildDetailItem(IconData icon, String label, String val, Color color) {
+    return Padding(
+      padding: const EdgeInsets.all(20.0),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(12)),
+            child: Icon(icon, color: AppTheme.primary, size: 22),
+          ),
+          const SizedBox(width: 16),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(label, style: const TextStyle(fontSize: 11, color: AppTheme.textSecondary, fontWeight: FontWeight.w600)),
+              const SizedBox(height: 4),
+              Text(val, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: AppTheme.primaryDark)),
+            ],
+          ),
+        ],
       ),
-      trailing: const Icon(Icons.chevron_right, color: Colors.grey),
-      contentPadding: const EdgeInsets.symmetric(vertical: 4),
+    );
+  }
+
+  Widget _buildActionRow(IconData icon, String title, VoidCallback onTap, {bool isDestructive = false}) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(18)),
+        child: Row(
+          children: [
+            Icon(icon, color: isDestructive ? Colors.redAccent : AppTheme.primary, size: 24),
+            const SizedBox(width: 16),
+            Text(title, style: TextStyle(color: isDestructive ? Colors.redAccent : AppTheme.primaryDark, fontWeight: FontWeight.w700, fontSize: 15)),
+            const Spacer(),
+            const Icon(Icons.chevron_right_rounded, color: Color(0xFFE8E5F0)),
+          ],
+        ),
+      ),
     );
   }
 }

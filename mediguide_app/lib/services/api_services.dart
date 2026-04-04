@@ -5,21 +5,28 @@ import 'package:flutter/foundation.dart';
 
 class ApiService {
   // Production Backend URL on Render
-  static const String _productionUrl = "https://backend-txn1.onrender.com";
+  static const String _productionUrl = "https://backend-1-lovz.onrender.com";
 
   static String get baseUrl {
-    // ⬇️ FOR REMOTE ACCESS (Phone anywhere), use this:
-    return _productionUrl;
+    // ⬇️ SET TO true FOR LOCAL TESTING (Laptop must be on)
+    // ⬇️ SET TO false FOR REMOTE ACCESS (Production Render)
+    const bool useLocal = false; // Set to false for cloud production build
 
-    // // ⬇️ FOR LOCAL TESTING (Laptop must be on), use this instead:
-    // if (kIsWeb) return "http://localhost:8000";
-    // try {
-    //   if (Platform.isAndroid) return "http://10.0.2.2:8000";
-    // } catch (_) { }
-    // return "http://127.0.0.1:8000"; 
+    if (useLocal) {
+      if (kIsWeb) return "http://localhost:8000";
+      try {
+        if (Platform.isAndroid) {
+          // Since you're using a real phone, we use your laptop's Wi-Fi IP
+          return "http://192.168.0.100:8000"; 
+        }
+      } catch (_) {}
+      return "http://127.0.0.1:8000";
+    }
+
+    return _productionUrl;
   }
 
-  static const Duration _timeout = Duration(seconds: 10);
+  static const Duration _timeout = Duration(seconds: 60);
 
   // Auth: Login
   static Future<Map<String, dynamic>> login(String email, String password) async {
@@ -97,7 +104,7 @@ class ApiService {
   }
 
   // Get Prediction
-  static Future<Map<String, dynamic>> getPrediction(List<String> symptoms, {int? patientId}) async {
+  static Future<Map<String, dynamic>> getPrediction(List<String> symptoms, {int? patientId, String severity = "moderate"}) async {
     var urlString = "$baseUrl/predict";
     if (patientId != null) {
       urlString += "?patient_id=$patientId";
@@ -107,7 +114,10 @@ class ApiService {
     final response = await http.post(
       url,
       headers: {"Content-Type": "application/json"},
-      body: jsonEncode({"symptoms": symptoms}),
+      body: jsonEncode({
+        "symptoms": symptoms,
+        "severity": severity,
+      }),
     ).timeout(_timeout);
 
     if (response.statusCode == 200) {
@@ -131,6 +141,31 @@ class ApiService {
       return jsonDecode(response.body);
     } else {
       throw Exception(jsonDecode(response.body)['detail'] ?? "Failed to update conditions");
+    }
+  }
+
+  // New Consult Method (Step 2 equivalent)
+  static Future<Map<String, dynamic>> consult({
+    required String userId,
+    required String symptom,
+    required String severity,
+  }) async {
+    final url = Uri.parse("$baseUrl/consult");
+    final response = await http.post(
+      url,
+      headers: {"Content-Type": "application/json"},
+      body: jsonEncode({
+        "user_id":  userId,
+        "symptom":  symptom,
+        "severity": severity,
+      }),
+    ).timeout(_timeout);
+
+    if (response.statusCode == 200) {
+      final decoded = jsonDecode(response.body);
+      return Map<String, dynamic>.from(decoded);
+    } else {
+      throw Exception("Consultation failed: ${response.body}");
     }
   }
 }
