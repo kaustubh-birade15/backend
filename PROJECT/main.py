@@ -123,11 +123,21 @@ def register(p: PatientProfile):
             cur.execute("""
                 INSERT INTO patients (user_id, full_name, email, password, age, gender, blood_group, bp_high, diabetic, sugar_level, bp_reading, allergies, existing_conditions, current_medications, medical_conditions)
                 VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
-                ON CONFLICT (user_id) DO UPDATE SET full_name=EXCLUDED.full_name, medical_conditions=EXCLUDED.medical_conditions
+                ON CONFLICT (email) DO UPDATE SET 
+                    full_name=EXCLUDED.full_name, 
+                    age=EXCLUDED.age,
+                    gender=EXCLUDED.gender,
+                    bp_high=EXCLUDED.bp_high,
+                    diabetic=EXCLUDED.diabetic,
+                    sugar_level=EXCLUDED.sugar_level,
+                    allergies=EXCLUDED.allergies,
+                    existing_conditions=EXCLUDED.existing_conditions,
+                    medical_conditions=EXCLUDED.medical_conditions
+                RETURNING id
             """, (uid, p.full_name, p.email, p.password, p.age, p.gender, p.blood_group, int(p.bp_high), int(p.diabetic), p.sugar_level, p.bp_reading, json.dumps(p.allergies), json.dumps(p.existing_conditions), json.dumps(p.current_medications), p.other_conditions))
             conn.commit()
-            cur.execute("SELECT id FROM patients WHERE email=%s", (p.email,))
-            pid = cur.fetchone()["id"]
+            result = cur.fetchone()
+            pid = result["id"] if result else 0
         return {"success": True, "id": pid, "patient_id": pid, "name": p.full_name}
     finally: conn.close()
 
